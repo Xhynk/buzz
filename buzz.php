@@ -19,10 +19,10 @@
 	*/
 
 	// Find out what reviews to pull and where to pull them from
-	$review_engine_url	= 'http://'. str_replace( array( 'http:// ', 'https:// ', 'http:// www.', 'https:// www.' ), '', $_GET['text'] ); // We need to know where to get the information, and strip the HTTP because it's an invalid directive.
+	$review_engine_url	= 'https://'. str_replace( array( 'http://', 'https:// ', 'www.', ' ', '//' ), '', $_GET['text'] ); // We need to know where to get the information, and strip the HTTP because it's an invalid directive.
 
 	// Now that we have our reviews, lets decode them so we can play with them!
-	$json_response		= @file_get_contents( $review_engine_url.'/reviews-api-v2/?query_v2=true&reviews_per_page=1&user=thirdrivermarketing&key=cead.6644bbeabb' ); // Get our JSON "Engine Data" response from the site. @ to supress errors if undefined or invalid.
+	$json_response		= file_get_contents( $review_engine_url.'/reviews-api-v2/?query_v2=true&reviews_per_page=1&user=thirdrivermarketing&key=cead.6644bbeabb' ); // Get our JSON "Engine Data" response from the site. @ to supress errors if undefined or invalid.
 	$response_object	= json_decode( $json_response ); // Turn that response into an object we can work with
 
 	// Make the object format easier to read
@@ -51,11 +51,11 @@
 			$_s				= ( $time_in_days > 1 ) ? 's' : ''; // Need to see if we use "Day" or "Days"
 
 			// Let's have a little fun with how long it's been since a review's been found
-			$finger_wag		= $unix_time < 604800 ? 'Less than a week! Nice!' :
-								( $unix_time < 2629743 ? 'Hmm, time for new reviews!' :
-								 	( $unix_time < 15778463 ? 'Getting pretty stagnant...' :
-										( $unix_time > 15778463 && $unix_time < 31556926 ? 'There\'s a serious lack of new reviews.' :
-									 		( $unix_time > 31556926 ? 'Over a year.. *tsk *tsk...' : '' ) ) ) );
+			$finger_wag		= $unix_time < 604800 ? 'Less than a week, ago… Nice!' :
+								( $unix_time < 2629743 ? 'Hmm… time for new reviews!' :
+								 	( $unix_time < 15778463 ? 'That score is getting pretty stagnant...' :
+										( $unix_time > 15778463 && $unix_time < 31556926 ? 'That\'s a serious lack of new reviews.' :
+									 		( $unix_time > 31556926 ? 'That\'s over a year ago… *tsk *tsk…' : '' ) ) ) );
 
 			// Slack API Response has to be an array, mostly to determine how to respond
 			// NOTE: This has to be formated this way to space it properly in the bot response
@@ -70,8 +70,7 @@
 		★★☆☆☆: *". $two_star_reviews_display ."* ($two_star_reviews_percent%)
 		★☆☆☆☆: *". $one_star_reviews_display ."* ($one_star_reviews_percent%)
 
-	_Latest Review_: *". $latest ."* - That's about *". round( $time_in_days ) ."* day$_s ago.
-		- ". $finger_wag
+	_Latest Review_: *". $latest ."* - That's about *". round( $time_in_days ) ."* day$_s ago. ". $finger_wag
 			);
 
 			echo substr( json_encode( $array ), 1, -1 ); // We have to trim the string a little for some reason, slack's not parsing the resposne correctly
